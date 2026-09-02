@@ -1,0 +1,5 @@
+.venv/
+.vscode/
+leaderboard.json
+**__pycache__**
+*.egg-info/

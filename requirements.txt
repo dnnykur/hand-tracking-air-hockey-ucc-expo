@@ -1,0 +1,7 @@
+pygame>=2.5.0
+# NOTE: pinned to stay compatible with the numpy<2 that mediapipe==0.10.21 pulls in.
+opencv-python==4.9.0.80
+# NOTE: mediapipe>=0.10.30 (and the 1.x line) removed the legacy `mp.solutions`
+# API used in this script, causing "module 'mediapipe' has no attribute
+# 'solutions'". Pin to the last version that still has it.
+mediapipe==0.10.21

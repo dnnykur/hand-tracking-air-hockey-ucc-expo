@@ -1,0 +1,26 @@
+[project]
+name = "hand-tracking-air-hockey-ucc-expo"
+version = "0.1.0"
+description = "Hand tracking Air Hockey for UCC expo"
+readme = "README.md"
+authors = [
+    { name = "Adsani", email = "Adsani.ty@proton.me" },
+    { name = "dnnykur", email = "donatepic67@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mediapipe==0.10.21",
+    "opencv-python==4.9.0.80",
+    "pygame>=2.5.0",
+]
+
+[project.scripts]
+AirHockey = "main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["main", "config"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

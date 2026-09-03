@@ -94,8 +94,9 @@ except (pygame.error, OSError):
 	pass
 pygame.display.set_caption("UCC Hand Tracking Air Hockey")
 
-FONT_HUGE = pygame.font.SysFont("arial", 72, bold=True)
-FONT_BIG = pygame.font.SysFont("arial", 40, bold=True)
-FONT_MED = pygame.font.SysFont("arial", 26, bold=True)
-FONT_SMALL = pygame.font.SysFont("arial", 18)
+FONT_FAMILY = "bahnschrift"
+FONT_HUGE = pygame.font.SysFont(FONT_FAMILY, 72, bold=True)
+FONT_BIG = pygame.font.SysFont(FONT_FAMILY, 40, bold=True)
+FONT_MED = pygame.font.SysFont(FONT_FAMILY, 26, bold=True)
+FONT_SMALL = pygame.font.SysFont(FONT_FAMILY, 18)
 

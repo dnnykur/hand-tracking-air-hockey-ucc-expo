@@ -13,8 +13,10 @@ from config import * # Ambil semua dari config.py
 # ---- Header layout, computed from REAL font metrics (cross-platform safe) ----
 _HEADER_TOP_PAD = 16
 TITLE_Y = _HEADER_TOP_PAD
-TARGET_Y = TITLE_Y + FONT_MED.get_height() + 6
-SCORE_Y = TARGET_Y + FONT_SMALL.get_height() + 4
+_title_bottom = TITLE_Y + FONT_MED.get_height()
+_header_rule_y = _title_bottom + 8
+TARGET_Y = _header_rule_y + 8
+SCORE_Y = TARGET_Y + FONT_SMALL.get_height() + 16
 NAME_Y = SCORE_Y + FONT_HUGE.get_height() + 4
 _header_bottom = NAME_Y + FONT_SMALL.get_height() + 18
 
@@ -568,6 +570,7 @@ class Game:
     # ---------------- draw ----------------
     def draw(self):
         SCREEN.fill(COLOR_BG)
+        self._draw_background()
         self._draw_header()
 
         if self.state == STATE_NAME_ENTRY:
@@ -589,11 +592,24 @@ class Game:
 
         present()
 
+    def _draw_background(self):
+        for x in range(0, WIDTH, 44):
+            pygame.draw.line(SCREEN, COLOR_GRID, (x, 0), (x, HEIGHT), 1)
+        for y in range(0, HEIGHT, 44):
+            pygame.draw.line(SCREEN, COLOR_GRID, (0, y), (WIDTH, y), 1)
+
+    def _draw_panel(self, rect, border_color=COLOR_PANEL_BORDER, radius=12):
+        pygame.draw.rect(SCREEN, COLOR_PANEL, rect, border_radius=radius)
+        pygame.draw.rect(SCREEN, border_color, rect, 2, border_radius=radius)
+
     def _draw_header(self):
         title = FONT_MED.render("UCC HAND TRACKING AIR HOCKEY", True, COLOR_ACCENT)
         SCREEN.blit(title, (WIDTH / 2 - title.get_width() / 2, TITLE_Y))
+        pygame.draw.line(SCREEN, COLOR_ACCENT, (WIDTH / 2 - 190, _header_rule_y),
+                         (WIDTH / 2 + 190, _header_rule_y), 2)
 
     def _draw_name_entry(self):
+        self._draw_panel(pygame.Rect(WIDTH / 2 - 315, 95, 630, 475), COLOR_PANEL_BORDER, 18)
         prompt = FONT_BIG.render("Masukkan Nama Pemain", True, COLOR_TEXT)
         SCREEN.blit(prompt, (WIDTH / 2 - prompt.get_width() / 2, 140))
 
@@ -638,10 +654,13 @@ class Game:
         table_rect = pygame.Rect(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT - TABLE_LEFT, TABLE_BOTTOM - TABLE_TOP)
         pygame.draw.rect(SCREEN, COLOR_TABLE, table_rect, border_radius=14)
         pygame.draw.rect(SCREEN, COLOR_TABLE_LINE, table_rect, 3, border_radius=14)
+        inner_rect = table_rect.inflate(-18, -18)
+        pygame.draw.rect(SCREEN, (18, 27, 47), inner_rect, 1, border_radius=10)
 
         # center line + circle
         pygame.draw.line(SCREEN, COLOR_TABLE_LINE, (TABLE_MID_X, TABLE_TOP), (TABLE_MID_X, TABLE_BOTTOM), 2)
         pygame.draw.circle(SCREEN, COLOR_TABLE_LINE, (TABLE_MID_X, (TABLE_TOP + TABLE_BOTTOM) // 2), 60, 2)
+        pygame.draw.circle(SCREEN, COLOR_TABLE_LINE, (TABLE_MID_X, (TABLE_TOP + TABLE_BOTTOM) // 2), 4)
 
         # goals
         mid_y = (TABLE_TOP + TABLE_BOTTOM) / 2
@@ -654,6 +673,11 @@ class Game:
         self.puck.draw(SCREEN)
 
     def _draw_scoreboard(self):
+        left_panel = pygame.Rect(TABLE_MID_X - 174, SCORE_Y - 9, 148, 128)
+        right_panel = pygame.Rect(TABLE_MID_X + 26, SCORE_Y - 9, 148, 128)
+        self._draw_panel(left_panel, COLOR_P1, 12)
+        self._draw_panel(right_panel, COLOR_P2, 12)
+
         s1 = FONT_HUGE.render(str(self.score1), True, COLOR_P1)
         s2 = FONT_HUGE.render(str(self.score2), True, COLOR_P2)
         SCREEN.blit(s1, (TABLE_MID_X - 100 - s1.get_width() / 2, SCORE_Y))
@@ -676,9 +700,10 @@ class Game:
             self._preview_frame_id = current_id
 
         x, y = PREVIEW_X, PREVIEW_Y
+        self._draw_panel(pygame.Rect(x - 8, y - 30, w + 16, h + 38), COLOR_PANEL_BORDER, 10)
         if self._preview_surface:
             SCREEN.blit(self._preview_surface, (x, y))
-        pygame.draw.rect(SCREEN, COLOR_MUTED, (x, y, w, h), 2, border_radius=6)
+        pygame.draw.rect(SCREEN, COLOR_ACCENT, (x, y, w, h), 2, border_radius=6)
         label = FONT_SMALL.render("Camera (hand tracking)", True, COLOR_MUTED)
         SCREEN.blit(label, (x, PREVIEW_LABEL_Y))
 
@@ -686,10 +711,15 @@ class Game:
         elapsed = time.time() - self.countdown_start
         n = 3 - int(elapsed)
         text = "GO!" if n <= 0 else str(n)
+        shade = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        shade.fill((5, 8, 16, 70))
+        SCREEN.blit(shade, (0, 0))
         surf = FONT_HUGE.render(text, True, COLOR_ACCENT)
         SCREEN.blit(surf, (WIDTH / 2 - surf.get_width() / 2, HEIGHT / 2 - surf.get_height() / 2))
 
     def _draw_goal_banner(self):
+        banner = pygame.Rect(WIDTH / 2 - 250, HEIGHT / 2 - 45, 500, 90)
+        self._draw_panel(banner, COLOR_GOAL, 16)
         surf = FONT_BIG.render(f"GOAL! {self.last_scorer} scores", True, COLOR_GOAL)
         SCREEN.blit(surf, (WIDTH / 2 - surf.get_width() / 2, HEIGHT / 2 - 20))
 
@@ -697,6 +727,7 @@ class Game:
         overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         overlay.fill((5, 6, 10, 210))
         SCREEN.blit(overlay, (0, 0))
+        self._draw_panel(pygame.Rect(WIDTH / 2 - 330, 105, 660, 390), COLOR_ACCENT, 18)
 
         winner = self.p1_name if self.score1 > self.score2 else self.p2_name
         title = FONT_HUGE.render("GAME OVER", True, COLOR_ACCENT)
@@ -714,6 +745,7 @@ class Game:
         overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         overlay.fill((5, 6, 10, 230))
         SCREEN.blit(overlay, (0, 0))
+        self._draw_panel(pygame.Rect(WIDTH / 2 - 330, 55, 660, 590), COLOR_ACCENT, 18)
 
         title = FONT_BIG.render("LIVE LEADERBOARD — TOP 10", True, COLOR_ACCENT)
         SCREEN.blit(title, (WIDTH / 2 - title.get_width() / 2, 90))

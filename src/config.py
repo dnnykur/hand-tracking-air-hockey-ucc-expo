@@ -12,22 +12,19 @@ MIN_WIN_WIDTH, MIN_WIN_HEIGHT = 480, 320  # batas bawah ukuran window fisik
 WIDTH, HEIGHT = TARGET_WIDTH, TARGET_HEIGHT
 
 CAM_INDEX = 0  # ganti sesuai /dev/videoN dari v4l2loopback (scrcpy webcam HP)
-# Balik ke 640x480 -- sekarang tracking jalan di thread terpisah (lihat
-# HandTracker di bawah), jadi resolusi besar gak lagi bikin GAME-nya nge-lag,
-# tapi tetap bikin loop tracking-nya sendiri lebih lambat per-iterasi ->
-# posisi tangan jadi kurang "fresh". Naikkan lagi ke 960x540 kalau CPU kamu
-# kuat dan mau akurasi lebih (jarak jauh/redup) daripada kecepatan.
-CAM_REQUEST_W, CAM_REQUEST_H = 640, 480
+# Capture HD memberi MediaPipe lebih banyak detail saat tangan berada agak jauh
+# dari kamera. HandTracker berjalan di thread terpisah dan hanya menyimpan frame
+# terbaru, jadi game loop tetap responsif.
+CAM_REQUEST_W, CAM_REQUEST_H = 1280, 720
 CAM_REQUEST_FPS = 30
 
-# Model MediaPipe: 0 = lite (cepat, delay minim), 1 = full (lebih akurat
-# dari jarak jauh, tapi tiap frame lebih lambat diproses -> posisi tangan
-# yang sampai ke game jadi kurang up-to-date). Default balik ke 0 (lite)
-# karena tracking sekarang jalan real-time di background thread -- makin
-# cepat loop-nya, makin "nempel" paddle ngikutin tangan.
-HAND_MODEL_COMPLEXITY = 0
-HAND_MIN_DETECTION_CONFIDENCE = 0.5
-HAND_MIN_TRACKING_CONFIDENCE = 0.4
+# Model 1 lebih teliti ketika ukuran tangan di frame kecil. Confidence yang
+# sedikit lebih tinggi mengurangi perpindahan posisi akibat deteksi keliru.
+HAND_MODEL_COMPLEXITY = 1
+HAND_MIN_DETECTION_CONFIDENCE = 0.6
+HAND_MIN_TRACKING_CONFIDENCE = 0.5
+HAND_LOST_GRACE_MS = 140  # tahan posisi sebentar saat MediaPipe kehilangan 1 frame
+HAND_SIDE_HYSTERESIS = 0.08  # cegah role pemain bolak-balik dekat garis tengah
 
 SHOW_HAND_SKELETON = True     # gambar skeleton tangan di preview kamera
 
@@ -35,7 +32,7 @@ SHOW_HAND_SKELETON = True     # gambar skeleton tangan di preview kamera
 #   0  = pergelangan tangan (wrist)      -> perlu seluruh telapak kelihatan
 #   8  = ujung jari telunjuk (index tip) -> kontrol pakai JARI SAJA, lebih presisi
 # (Landmark lain: 4=ibu jari, 12=tengah, 16=manis, 20=kelingking)
-CONTROL_LANDMARK = 8
+CONTROL_LANDMARK = 9
 ENHANCE_LOW_LIGHT = True      # CLAHE contrast boost, bantu deteksi di cahaya redup
 
 # One-Euro-Filter (Casiez et al.) buat smoothing paddle: adaptif, jadi tetap

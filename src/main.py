@@ -135,6 +135,7 @@ class HandTracker:
         self.last_hand_landmarks = []     # kerangka tracking
         self.p1_pos = None      # (x, y) normalized 0..1, or None if not seen this frame
         self.p2_pos = None
+        self._last_seen = [0.0, 0.0]
         self.frame_id = 0       # naik setiap ada frame baru terselesaikan
         self.last_process_ms = 0.0  # buat debug: berapa lama 1 iterasi tracking
 
@@ -180,10 +181,32 @@ class HandTracker:
                 p2_pos = (tips[-1].x, tips[-1].y)
             elif len(hands_found) == 1:
                 tip = hands_found[0].landmark[CONTROL_LANDMARK]
-                if tip.x < 0.5:
+                # Hysteresis prevents a hand near the center line from
+                # switching player on alternating frames.
+                center_margin = HAND_SIDE_HYSTERESIS
+                if tip.x < 0.5 - center_margin:
                     p1_pos = (tip.x, tip.y)
-                else:
+                elif tip.x > 0.5 + center_margin:
                     p2_pos = (tip.x, tip.y)
+                elif self.p1_pos is not None and self.p2_pos is None:
+                    p1_pos = (tip.x, tip.y)
+                elif self.p2_pos is not None and self.p1_pos is None:
+                    p2_pos = (tip.x, tip.y)
+
+            # MediaPipe can briefly return no hand while a player moves fast.
+            # Keep the last valid target for a short grace period so the paddle
+            # does not freeze and resume with a visible jump.
+            now = time.perf_counter()
+            with self._lock:
+                current_positions = [p1_pos, p2_pos]
+                previous_positions = [self.p1_pos, self.p2_pos]
+                for index, position in enumerate(current_positions):
+                    if position is not None:
+                        self._last_seen[index] = now
+                    elif (previous_positions[index] is not None
+                          and (now - self._last_seen[index]) * 1000 <= HAND_LOST_GRACE_MS):
+                        current_positions[index] = previous_positions[index]
+                p1_pos, p2_pos = current_positions
 
             with self._lock:
                 self.last_frame = frame

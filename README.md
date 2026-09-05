@@ -1,10 +1,12 @@
 # UCC Hand Tracking Air Hockey — Python Edition
 
-<p align="center">
+<div align="center">
+<a href="https://digitalliterasi.net">
   <img src="assets/UCC.png" width="200">
   <br>
-  Umaha Coders Community
-</p>
+</a>
+  <a href="https://digitalliterasi.net">Umaha Coders Community</a>
+</div>
 
 Game Air Hockey yang dimainkan menggunakan Webcam dan dibuat menggunakan Python
 
